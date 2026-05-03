@@ -37,6 +37,8 @@ With Laptop Guardian armed, the moment the thief unplugs the charger or moves ou
 
 ## Install
 
+**Download one file. Double-click. Done.** No Python, no terminal, no scripts.
+
 <table>
 <tr>
 <td width="33%" align="center"><h3>🍎 macOS</h3></td>
@@ -46,26 +48,45 @@ With Laptop Guardian armed, the moment the thief unplugs the charger or moves ou
 <tr>
 <td align="center">
 
-[**Download .app**](https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-mac.zip)
+[**⬇ Download .dmg**](https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-mac.dmg)
 
-Unzip → double-click → done.
+Open → drag to Applications → done.
 </td>
 <td align="center">
 
-[**Download installer**](https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-windows-installer.bat)
+[**⬇ Download .exe**](https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian.exe)
 
-Double-click → installs everything.
+Double-click → it just runs. No install.
 </td>
 <td align="center">
 
-```bash
-curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/install.sh | bash
-```
+[**⬇ Download binary**](https://github.com/stef41/laptop-guardian/releases/latest/download/laptop-guardian)
+
+`chmod +x laptop-guardian && ./laptop-guardian`
 </td>
 </tr>
 </table>
 
-> **No terminal, no pip, no git.** The installer handles Python, dependencies, and creates app shortcuts automatically. [More install options →](#advanced-install)
+<details>
+<summary><strong>Or install via package manager</strong></summary>
+
+**macOS (Homebrew):**
+```bash
+brew install stef41/tap/laptop-guardian
+```
+
+**pip (any platform):**
+```bash
+pip install git+https://github.com/stef41/laptop-guardian.git
+```
+
+**From source:**
+```bash
+git clone https://github.com/stef41/laptop-guardian.git
+cd laptop-guardian && pip install .
+```
+
+</details>
 
 <br/>
 
@@ -178,44 +199,11 @@ Laptop Guardian uses native OS commands under the hood — no elevated permissio
 
 <br/>
 
-## Advanced Install
-
-<details>
-<summary><strong>pip install (developers)</strong></summary>
-
-```bash
-pip install git+https://github.com/stef41/laptop-guardian.git
-laptop-guardian
-```
-</details>
-
-<details>
-<summary><strong>From source</strong></summary>
-
-```bash
-git clone https://github.com/stef41/laptop-guardian.git
-cd laptop-guardian
-pip install .
-laptop-guardian
-```
-</details>
-
-<br/>
-
 ## Uninstall
 
-<table>
-<tr><td>🍎 macOS / 🐧 Linux</td><td>
+Just delete the app. No leftover services, no daemons, no registry entries.
 
-```bash
-curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/uninstall.sh | bash
-```
-</td></tr>
-<tr><td>🪟 Windows</td><td>
-
-[Download uninstall.bat](https://raw.githubusercontent.com/stef41/laptop-guardian/main/uninstall.bat) and double-click.
-</td></tr>
-</table>
+To also remove settings: delete `~/.config/laptop-guardian` (macOS/Linux) or `%USERPROFILE%\.config\laptop-guardian` (Windows).
 
 <br/>
 

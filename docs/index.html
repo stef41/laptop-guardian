@@ -176,14 +176,14 @@
         <p class="os-detected" id="os-text">Detecting your system...</p>
 
         <div class="other-platforms">
-            <a id="dl-mac" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-mac.zip">
-                🍎 macOS
+            <a id="dl-mac" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-mac.dmg">
+                🍎 macOS (.dmg)
             </a>
-            <a id="dl-win" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-windows-installer.bat">
-                🪟 Windows
+            <a id="dl-win" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian.exe">
+                🪟 Windows (.exe)
             </a>
-            <a id="dl-linux" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/install.sh">
-                🐧 Linux
+            <a id="dl-linux" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/laptop-guardian">
+                🐧 Linux (binary)
             </a>
         </div>
     </div>
@@ -208,7 +208,7 @@
     <div class="feature">
         <div class="icon">🔕</div>
         <h3>Zero Configuration</h3>
-        <p>Download, open, type your phone name, click "Arm". That's it. No terminal, no coding.</p>
+        <p>Download one file, open it, type your phone name, click "Arm". No install, no terminal, no account.</p>
     </div>
     <div class="feature">
         <div class="icon">🖥️</div>
@@ -229,7 +229,7 @@
             <div class="step-num">1</div>
             <div class="step-text">
                 <h4>Download & Open</h4>
-                <p>Click the download button above. On Mac, unzip and open the app. On Windows, run the installer.</p>
+                <p>Click the download button above. On Mac, open the .dmg and drag to Applications. On Windows, just double-click the .exe.</p>
             </div>
         </div>
         <div class="step">
@@ -277,15 +277,15 @@
     if (ua.includes('mac')) {
         primary.href = document.getElementById('dl-mac').href;
         label.textContent = 'Download for macOS';
-        osText.textContent = 'macOS detected · Also available for Windows and Linux below';
+        osText.textContent = 'macOS detected · One file, no install needed · Also available for Windows and Linux';
     } else if (ua.includes('win')) {
         primary.href = document.getElementById('dl-win').href;
         label.textContent = 'Download for Windows';
-        osText.textContent = 'Windows detected · Also available for macOS and Linux below';
+        osText.textContent = 'Windows detected · One .exe file, no install needed · Also available for macOS and Linux';
     } else if (ua.includes('linux')) {
         primary.href = document.getElementById('dl-linux').href;
         label.textContent = 'Download for Linux';
-        osText.textContent = 'Linux detected · Also available for macOS and Windows below';
+        osText.textContent = 'Linux detected · Single binary · Also available for macOS and Windows';
     } else {
         primary.href = 'https://github.com/stef41/laptop-guardian/releases/latest';
         label.textContent = 'Download';
