@@ -1,11 +1,13 @@
-"""USB device disconnect monitor using IOKit."""
+"""USB device disconnect monitor — cross-platform."""
 
 import threading
 import time
 import subprocess
+import platform
 import logging
 
 logger = logging.getLogger("laptop-guardian.usb")
+SYSTEM = platform.system()
 
 
 class USBMonitor:
@@ -42,14 +44,28 @@ class USBMonitor:
         logger.info("USB monitor armed.")
 
     def _is_device_present(self) -> bool:
-        """Check if the USB device is present via system_profiler."""
+        """Check if the USB device is present via OS-specific methods."""
         try:
-            result = subprocess.run(
-                ["system_profiler", "SPUSBDataType"],
-                capture_output=True, text=True, timeout=10
-            )
+            if SYSTEM == "Darwin":
+                result = subprocess.run(
+                    ["system_profiler", "SPUSBDataType"],
+                    capture_output=True, text=True, timeout=10
+                )
+            elif SYSTEM == "Windows":
+                result = subprocess.run(
+                    ["powershell", "-c",
+                     "Get-PnpDevice -Class USB | "
+                     "Where-Object { $_.Status -eq 'OK' } | "
+                     "Select-Object -ExpandProperty FriendlyName"],
+                    capture_output=True, text=True, timeout=10
+                )
+            else:  # Linux
+                result = subprocess.run(
+                    ["lsusb"],
+                    capture_output=True, text=True, timeout=10
+                )
             return self.device_name.lower() in result.stdout.lower()
-        except (subprocess.TimeoutExpired, OSError):
+        except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
             return False
 
     def _poll(self):
@@ -61,6 +77,6 @@ class USBMonitor:
                 logger.warning("USB device disconnected! Triggering action.")
                 self.on_disconnect("usb")
                 self._was_connected = False
-                time.sleep(30)  # cooldown
+                time.sleep(30)
                 continue
             time.sleep(2)

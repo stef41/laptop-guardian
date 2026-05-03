@@ -1,39 +1,78 @@
 """Lock actions — what happens when a trigger fires."""
 
 import subprocess
+import sys
 import platform
+
+SYSTEM = platform.system()
 
 
 def lock_screen():
-    """Lock the screen (macOS)."""
-    subprocess.Popen([
-        "/usr/bin/pmset", "displaysleepnow"
-    ])
+    """Lock the screen."""
+    if SYSTEM == "Darwin":
+        subprocess.Popen(["/usr/bin/pmset", "displaysleepnow"])
+    elif SYSTEM == "Windows":
+        subprocess.Popen(["rundll32.exe", "user32.dll,LockWorkStation"])
+    else:  # Linux
+        # Try common lockers in order
+        for cmd in [
+            ["loginctl", "lock-session"],
+            ["xdg-screensaver", "lock"],
+            ["gnome-screensaver-command", "-l"],
+            ["xscreensaver-command", "-lock"],
+        ]:
+            try:
+                subprocess.Popen(cmd)
+                return
+            except FileNotFoundError:
+                continue
 
 
 def sleep_machine():
     """Put the machine to sleep."""
-    subprocess.Popen([
-        "/usr/bin/pmset", "sleepnow"
-    ])
+    if SYSTEM == "Darwin":
+        subprocess.Popen(["/usr/bin/pmset", "sleepnow"])
+    elif SYSTEM == "Windows":
+        subprocess.Popen(["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"])
+    else:
+        subprocess.Popen(["systemctl", "suspend"])
 
 
 def shutdown_machine():
     """Shut down immediately."""
-    subprocess.Popen([
-        "/usr/bin/osascript", "-e",
-        'tell application "System Events" to shut down'
-    ])
+    if SYSTEM == "Darwin":
+        subprocess.Popen([
+            "/usr/bin/osascript", "-e",
+            'tell application "System Events" to shut down'
+        ])
+    elif SYSTEM == "Windows":
+        subprocess.Popen(["shutdown", "/s", "/t", "0"])
+    else:
+        subprocess.Popen(["systemctl", "poweroff"])
 
 
 def play_alarm():
     """Play a loud alarm sound."""
-    # Use macOS 'afplay' with the built-in alarm sound
-    alarm_path = "/System/Library/Sounds/Sosumi.aiff"
-    # Play it 5 times rapidly for attention
-    subprocess.Popen([
-        "/usr/bin/afplay", alarm_path
-    ])
+    if SYSTEM == "Darwin":
+        alarm_path = "/System/Library/Sounds/Sosumi.aiff"
+        subprocess.Popen(["/usr/bin/afplay", alarm_path])
+    elif SYSTEM == "Windows":
+        # Use PowerShell to beep
+        subprocess.Popen([
+            "powershell", "-c",
+            "[console]::beep(1000,1500)"
+        ])
+    else:
+        # Try paplay or aplay
+        for cmd in [
+            ["paplay", "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga"],
+            ["aplay", "/usr/share/sounds/alsa/Front_Center.wav"],
+        ]:
+            try:
+                subprocess.Popen(cmd)
+                return
+            except FileNotFoundError:
+                continue
 
 
 ACTIONS = {

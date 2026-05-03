@@ -1,8 +1,14 @@
-"""Laptop Guardian — macOS menu bar app."""
+"""Laptop Guardian — cross-platform system tray app."""
 
 import logging
-import rumps
-from laptop_guardian.config import load_config, save_config, DEFAULTS
+import platform
+import threading
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+from PIL import Image, ImageDraw
+import pystray
+
+from laptop_guardian.config import load_config, save_config
 from laptop_guardian.actions import execute_action
 from laptop_guardian.bluetooth_monitor import BluetoothMonitor
 from laptop_guardian.usb_monitor import USBMonitor
@@ -14,79 +20,110 @@ logging.basicConfig(
 )
 logger = logging.getLogger("laptop-guardian")
 
+SYSTEM = platform.system()
 
-class LaptopGuardianApp(rumps.App):
+
+def _create_icon_image(armed: bool) -> Image.Image:
+    """Create a simple tray icon — green shield (disarmed) or red (armed)."""
+    size = 64
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    color = (220, 40, 40, 255) if armed else (60, 160, 80, 255)
+    # Shield shape
+    draw.polygon([
+        (32, 4), (58, 16), (54, 44), (32, 60), (10, 44), (6, 16)
+    ], fill=color, outline=(255, 255, 255, 200))
+    # Inner highlight
+    draw.polygon([
+        (32, 12), (48, 20), (46, 40), (32, 50), (18, 40), (16, 20)
+    ], fill=(255, 255, 255, 60))
+    return img
+
+
+def _tk_prompt(title: str, message: str, default: str = "") -> str | None:
+    """Show a tkinter input dialog (works cross-platform)."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    result = simpledialog.askstring(title, message, initialvalue=default, parent=root)
+    root.destroy()
+    return result
+
+
+def _tk_info(title: str, message: str):
+    """Show an info popup."""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    messagebox.showinfo(title, message, parent=root)
+    root.destroy()
+
+
+class LaptopGuardianApp:
     def __init__(self):
-        super().__init__(
-            "Laptop Guardian",
-            icon=None,
-            title="🛡️",
-            quit_button=None,
-        )
         self.config = load_config()
-        self.monitors = []
+        self.monitors: list = []
         self._armed = False
+        self._icon: pystray.Icon | None = None
 
-        # Build menu
-        self.arm_button = rumps.MenuItem("Arm Guardian", callback=self.toggle_arm)
-        self.status_item = rumps.MenuItem("Status: Disarmed")
-        self.status_item.set_callback(None)
+    def _build_menu(self) -> pystray.Menu:
+        return pystray.Menu(
+            pystray.MenuItem(
+                "Disarm Guardian" if self._armed else "Arm Guardian",
+                self._toggle_arm,
+                default=True,
+            ),
+            pystray.MenuItem(
+                f"Status: {'🔴 ARMED' if self._armed else 'Disarmed'}",
+                None,
+                enabled=False,
+            ),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem("Settings", pystray.Menu(
+                pystray.MenuItem(
+                    f"Bluetooth: {'ON' if self.config['bluetooth_enabled'] else 'OFF'}",
+                    self._toggle_bluetooth,
+                ),
+                pystray.MenuItem(
+                    f"BT Device: {self.config['bluetooth_device'] or 'Not Set'}",
+                    self._set_bluetooth_device,
+                ),
+                pystray.Menu.SEPARATOR,
+                pystray.MenuItem(
+                    f"USB Watch: {'ON' if self.config['usb_enabled'] else 'OFF'}",
+                    self._toggle_usb,
+                ),
+                pystray.MenuItem(
+                    f"USB Device: {self.config['usb_device'] or 'Not Set'}",
+                    self._set_usb_device,
+                ),
+                pystray.Menu.SEPARATOR,
+                pystray.MenuItem(
+                    f"Power Yank: {'ON' if self.config['motion_enabled'] else 'OFF'}",
+                    self._toggle_motion,
+                ),
+                pystray.Menu.SEPARATOR,
+                pystray.MenuItem(
+                    f"Action: {self.config['lock_action'].title()}",
+                    self._set_action,
+                ),
+                pystray.MenuItem(
+                    f"Alert Sound: {'ON' if self.config['alert_sound'] else 'OFF'}",
+                    self._toggle_sound,
+                ),
+            )),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem("Quit", self._quit),
+        )
 
-        # Settings submenu
-        settings_menu = rumps.MenuItem("Settings")
+    def _refresh_menu(self):
+        if self._icon:
+            self._icon.menu = self._build_menu()
+            self._icon.icon = _create_icon_image(self._armed)
 
-        self.bt_toggle = rumps.MenuItem(
-            f"Bluetooth: {'ON' if self.config['bluetooth_enabled'] else 'OFF'}",
-            callback=self.toggle_bluetooth,
-        )
-        self.bt_device = rumps.MenuItem(
-            f"BT Device: {self.config['bluetooth_device'] or 'Not Set'}",
-            callback=self.set_bluetooth_device,
-        )
-        self.usb_toggle = rumps.MenuItem(
-            f"USB Watch: {'ON' if self.config['usb_enabled'] else 'OFF'}",
-            callback=self.toggle_usb,
-        )
-        self.usb_device = rumps.MenuItem(
-            f"USB Device: {self.config['usb_device'] or 'Not Set'}",
-            callback=self.set_usb_device,
-        )
-        self.motion_toggle = rumps.MenuItem(
-            f"Motion/Power: {'ON' if self.config['motion_enabled'] else 'OFF'}",
-            callback=self.toggle_motion,
-        )
-        self.action_item = rumps.MenuItem(
-            f"Action: {self.config['lock_action'].title()}",
-            callback=self.set_action,
-        )
-        self.sound_toggle = rumps.MenuItem(
-            f"Alert Sound: {'ON' if self.config['alert_sound'] else 'OFF'}",
-            callback=self.toggle_sound,
-        )
+    # ── Arm / Disarm ──────────────────────────────────────────────
 
-        settings_menu.update([
-            self.bt_toggle,
-            self.bt_device,
-            None,  # separator
-            self.usb_toggle,
-            self.usb_device,
-            None,
-            self.motion_toggle,
-            None,
-            self.action_item,
-            self.sound_toggle,
-        ])
-
-        self.menu = [
-            self.arm_button,
-            self.status_item,
-            None,
-            settings_menu,
-            None,
-            rumps.MenuItem("Quit", callback=self.quit_app),
-        ]
-
-    def toggle_arm(self, sender):
+    def _toggle_arm(self, icon, item):
         if self._armed:
             self._disarm()
         else:
@@ -94,23 +131,15 @@ class LaptopGuardianApp(rumps.App):
 
     def _arm(self):
         self._armed = True
-        self.arm_button.title = "Disarm Guardian"
-        self.status_item.title = "Status: 🔴 ARMED"
-        self.title = "🔴"
         self._start_monitors()
-        rumps.notification(
-            "Laptop Guardian",
-            "Armed",
-            "All configured monitors are active. Your laptop is protected.",
-        )
+        self._refresh_menu()
+        logger.info("Guardian ARMED")
 
     def _disarm(self):
         self._armed = False
-        self.arm_button.title = "Arm Guardian"
-        self.status_item.title = "Status: Disarmed"
-        self.title = "🛡️"
         self._stop_monitors()
-        rumps.notification("Laptop Guardian", "Disarmed", "Protection disabled.")
+        self._refresh_menu()
+        logger.info("Guardian disarmed")
 
     def _start_monitors(self):
         self._stop_monitors()
@@ -145,80 +174,81 @@ class LaptopGuardianApp(rumps.App):
     def _trigger(self, source: str):
         logger.warning(f"TRIGGER from {source}!")
         execute_action(self.config["lock_action"], self.config["alert_sound"])
-        # Auto-disarm after trigger to prevent loops
         self._disarm()
 
-    # --- Settings callbacks ---
+    # ── Settings callbacks ────────────────────────────────────────
 
-    def toggle_bluetooth(self, sender):
+    def _toggle_bluetooth(self, icon, item):
         self.config["bluetooth_enabled"] = not self.config["bluetooth_enabled"]
-        sender.title = f"Bluetooth: {'ON' if self.config['bluetooth_enabled'] else 'OFF'}"
         save_config(self.config)
+        self._refresh_menu()
 
-    def set_bluetooth_device(self, sender):
-        response = rumps.Window(
-            message="Enter the name of your trusted Bluetooth device\n"
-                    "(e.g., your phone name as shown in Bluetooth settings):",
-            title="Bluetooth Device",
-            default_text=self.config["bluetooth_device"],
-            ok="Save",
-            cancel="Cancel",
-        ).run()
-        if response.clicked:
-            self.config["bluetooth_device"] = response.text.strip()
-            sender.title = f"BT Device: {self.config['bluetooth_device'] or 'Not Set'}"
+    def _set_bluetooth_device(self, icon, item):
+        result = _tk_prompt(
+            "Bluetooth Device",
+            "Enter your trusted Bluetooth device name\n"
+            "(e.g. your phone name from Bluetooth settings):",
+            self.config["bluetooth_device"],
+        )
+        if result is not None:
+            self.config["bluetooth_device"] = result.strip()
             save_config(self.config)
+            self._refresh_menu()
 
-    def toggle_usb(self, sender):
+    def _toggle_usb(self, icon, item):
         self.config["usb_enabled"] = not self.config["usb_enabled"]
-        sender.title = f"USB Watch: {'ON' if self.config['usb_enabled'] else 'OFF'}"
         save_config(self.config)
+        self._refresh_menu()
 
-    def set_usb_device(self, sender):
-        response = rumps.Window(
-            message="Enter the name of your USB device to watch\n"
-                    "(e.g., a USB key name — check System Information > USB):",
-            title="USB Device",
-            default_text=self.config["usb_device"],
-            ok="Save",
-            cancel="Cancel",
-        ).run()
-        if response.clicked:
-            self.config["usb_device"] = response.text.strip()
-            sender.title = f"USB Device: {self.config['usb_device'] or 'Not Set'}"
+    def _set_usb_device(self, icon, item):
+        hint = {
+            "Darwin": "System Information → USB",
+            "Windows": "Device Manager → USB",
+            "Linux": "run 'lsusb' in terminal",
+        }.get(SYSTEM, "your OS device manager")
+        result = _tk_prompt(
+            "USB Device",
+            f"Enter the USB device name to watch\n(check {hint}):",
+            self.config["usb_device"],
+        )
+        if result is not None:
+            self.config["usb_device"] = result.strip()
             save_config(self.config)
+            self._refresh_menu()
 
-    def toggle_motion(self, sender):
+    def _toggle_motion(self, icon, item):
         self.config["motion_enabled"] = not self.config["motion_enabled"]
-        sender.title = f"Motion/Power: {'ON' if self.config['motion_enabled'] else 'OFF'}"
         save_config(self.config)
+        self._refresh_menu()
 
-    def set_action(self, sender):
-        response = rumps.Window(
-            message="Choose action when triggered:\n"
-                    "  • lock — Lock the screen\n"
-                    "  • sleep — Put Mac to sleep\n"
-                    "  • shutdown — Shut down the Mac",
-            title="Trigger Action",
-            default_text=self.config["lock_action"],
-            ok="Save",
-            cancel="Cancel",
-        ).run()
-        if response.clicked:
-            val = response.text.strip().lower()
-            if val in ("lock", "sleep", "shutdown"):
-                self.config["lock_action"] = val
-                sender.title = f"Action: {val.title()}"
-                save_config(self.config)
+    def _set_action(self, icon, item):
+        result = _tk_prompt(
+            "Trigger Action",
+            "Type one of: lock, sleep, shutdown",
+            self.config["lock_action"],
+        )
+        if result and result.strip().lower() in ("lock", "sleep", "shutdown"):
+            self.config["lock_action"] = result.strip().lower()
+            save_config(self.config)
+            self._refresh_menu()
 
-    def toggle_sound(self, sender):
+    def _toggle_sound(self, icon, item):
         self.config["alert_sound"] = not self.config["alert_sound"]
-        sender.title = f"Alert Sound: {'ON' if self.config['alert_sound'] else 'OFF'}"
         save_config(self.config)
+        self._refresh_menu()
 
-    def quit_app(self, sender):
+    def _quit(self, icon, item):
         self._stop_monitors()
-        rumps.quit_application()
+        icon.stop()
+
+    def run(self):
+        self._icon = pystray.Icon(
+            "laptop-guardian",
+            icon=_create_icon_image(False),
+            title="Laptop Guardian",
+            menu=self._build_menu(),
+        )
+        self._icon.run()
 
 
 def main():

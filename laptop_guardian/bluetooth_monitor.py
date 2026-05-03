@@ -1,11 +1,13 @@
-"""Bluetooth proximity monitor using CoreBluetooth."""
+"""Bluetooth proximity monitor — cross-platform."""
 
 import threading
 import time
 import subprocess
+import platform
 import logging
 
 logger = logging.getLogger("laptop-guardian.bluetooth")
+SYSTEM = platform.system()
 
 
 class BluetoothMonitor:
@@ -36,19 +38,41 @@ class BluetoothMonitor:
             self._thread.join(timeout=5)
 
     def arm(self):
-        """Arm the monitor — only triggers after armed (so setup doesn't false-fire)."""
         self._armed = True
         logger.info("Bluetooth monitor armed.")
 
     def _is_device_connected(self) -> bool:
-        """Check if the device is connected via system_profiler."""
+        """Check if the device is connected via OS-specific methods."""
         try:
-            result = subprocess.run(
-                ["system_profiler", "SPBluetoothDataType"],
-                capture_output=True, text=True, timeout=10
-            )
-            return self.device_name.lower() in result.stdout.lower()
-        except (subprocess.TimeoutExpired, OSError):
+            if SYSTEM == "Darwin":
+                result = subprocess.run(
+                    ["system_profiler", "SPBluetoothDataType"],
+                    capture_output=True, text=True, timeout=10
+                )
+                return self.device_name.lower() in result.stdout.lower()
+            elif SYSTEM == "Windows":
+                # Use PowerShell to query paired+connected BT devices
+                result = subprocess.run(
+                    ["powershell", "-c",
+                     "Get-PnpDevice -Class Bluetooth | "
+                     "Where-Object { $_.Status -eq 'OK' } | "
+                     "Select-Object -ExpandProperty FriendlyName"],
+                    capture_output=True, text=True, timeout=10
+                )
+                return self.device_name.lower() in result.stdout.lower()
+            else:  # Linux
+                result = subprocess.run(
+                    ["bluetoothctl", "devices", "Connected"],
+                    capture_output=True, text=True, timeout=10
+                )
+                if result.returncode != 0:
+                    # Older bluetoothctl without "devices Connected"
+                    result = subprocess.run(
+                        ["bluetoothctl", "info"],
+                        capture_output=True, text=True, timeout=10
+                    )
+                return self.device_name.lower() in result.stdout.lower()
+        except (subprocess.TimeoutExpired, OSError, FileNotFoundError):
             return False
 
     def _poll(self):
@@ -64,7 +88,7 @@ class BluetoothMonitor:
                 elif self._armed and (time.time() - lost_since) >= self.timeout_sec:
                     logger.warning("Bluetooth device lost! Triggering action.")
                     self.on_lost("bluetooth")
-                    lost_since = None  # reset after trigger
-                    time.sleep(30)     # cooldown
+                    lost_since = None
+                    time.sleep(30)
                     continue
             time.sleep(3)

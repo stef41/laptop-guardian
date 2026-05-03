@@ -1,6 +1,6 @@
 # 🛡️ Laptop Guardian
 
-**Anti-theft protection for your Mac.** Sits in your menu bar and locks your laptop when:
+**Anti-theft protection for your laptop.** Sits in your system tray and locks your computer when:
 
 <p align="center">
   <img src="demo.gif" alt="Laptop Guardian demo" width="800">
@@ -10,16 +10,25 @@
 - 🔌 **USB device is unplugged** — attach a USB key as a "kill cord"
 - ⚡ **Power adapter is yanked** — someone grabs your laptop off the table
 
+Works on **macOS**, **Windows**, and **Linux**.
+
 ## Install
 
-**Copy-paste this into Terminal** (press ⌘+Space, type "Terminal", hit Enter):
+### macOS / Linux
+
+**Copy-paste this into Terminal:**
 
 ```bash
 curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/install.sh | bash
 ```
 
-That's it. It installs everything automatically — Python, dependencies, and creates a
-**Laptop Guardian** app you can double-click from `~/Applications` or find via Spotlight.
+### Windows
+
+1. [Download install.bat](https://raw.githubusercontent.com/stef41/laptop-guardian/main/install.bat)
+2. Double-click it
+3. If Python is missing, it opens the download page — install Python, then run `install.bat` again
+
+That's it. The installer handles everything — Python, dependencies, shortcuts.
 
 <details>
 <summary>Alternative: install with pip (for developers)</summary>
@@ -43,7 +52,7 @@ pip install .
 laptop-guardian
 ```
 
-A **🛡️** shield icon appears in your menu bar. Click it to:
+A **shield icon** appears in your system tray. Right-click it to:
 
 1. **Configure your triggers** — set your Bluetooth device name, USB device, etc.
 2. **Choose an action** — lock screen, sleep, or shutdown
@@ -54,7 +63,7 @@ When armed, the icon turns **🔴** and all monitors are active.
 ### Quick Setup
 
 1. Run `laptop-guardian`
-2. Click the shield → **Settings** → **BT Device** → type your phone name (e.g. "iPhone")
+2. Right-click the shield → **Settings** → **BT Device** → type your phone name (e.g. "iPhone")
 3. Click **Arm Guardian**
 4. Done! Your laptop locks when your phone goes out of Bluetooth range
 
@@ -71,8 +80,8 @@ When armed, the icon turns **🔴** and all monitors are active.
 | Action | What happens |
 |--------|-------------|
 | **Lock** (default) | Screen locks immediately |
-| **Sleep** | Mac goes to sleep |
-| **Shutdown** | Mac shuts down |
+| **Sleep** | Computer goes to sleep |
+| **Shutdown** | Computer shuts down |
 
 ## Configuration
 
@@ -94,29 +103,28 @@ Settings are stored in `~/.config/laptop-guardian/config.json` and can be edited
 
 ## Requirements
 
-- **macOS 12+** (Monterey or later)
-- **Python 3.9+**
+- **macOS 12+**, **Windows 10+**, or **Linux** (with a system tray)
+- **Python 3.9+** (the installer handles this for you)
 
 ## How It Works
 
-- Runs as a lightweight menu bar app using [rumps](https://github.com/jaredks/rumps)
-- Bluetooth monitoring via `system_profiler SPBluetoothDataType`
-- USB monitoring via `system_profiler SPUSBDataType`
-- Power disconnect detection via `pmset`
+- Runs as a lightweight system tray app using [pystray](https://github.com/moses-palmer/pystray)
+- Bluetooth: `system_profiler` (macOS), `Get-PnpDevice` (Windows), `bluetoothctl` (Linux)
+- USB: `system_profiler` (macOS), `Get-PnpDevice` (Windows), `lsusb` (Linux)
+- Power disconnect detection via [psutil](https://github.com/giampaolo/psutil)
 - All monitors run in background threads with minimal CPU usage
 - Triggers are only active when **armed** — no accidental locks during setup
 
 ## Uninstall
 
+**macOS / Linux:**
 ```bash
 curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/uninstall.sh | bash
 ```
 
-Or manually:
+**Windows:** [Download uninstall.bat](https://raw.githubusercontent.com/stef41/laptop-guardian/main/uninstall.bat) and double-click it.
 
-```bash
-rm -rf ~/.laptop-guardian ~/Applications/Laptop\ Guardian.app ~/.config/laptop-guardian
-```
+Or manually delete `~/.laptop-guardian` and `~/.config/laptop-guardian`.
 
 ## License
 
