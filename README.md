@@ -9,13 +9,13 @@
 ## Install (one command)
 
 ```bash
-pip install git+https://github.com/YOUR_USER/laptop-guardian.git
+pip install git+https://github.com/stef41/laptop-guardian.git
 ```
 
 Or clone and install:
 
 ```bash
-git clone https://github.com/YOUR_USER/laptop-guardian.git
+git clone https://github.com/stef41/laptop-guardian.git
 cd laptop-guardian
 pip install .
 ```
