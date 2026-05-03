@@ -2,6 +2,10 @@
 
 **Anti-theft protection for your Mac.** Sits in your menu bar and locks your laptop when:
 
+<p align="center">
+  <img src="demo.gif" alt="Laptop Guardian demo" width="800">
+</p>
+
 - 📶 **Bluetooth device disappears** — pair your phone, walk away and it locks
 - 🔌 **USB device is unplugged** — attach a USB key as a "kill cord"
 - ⚡ **Power adapter is yanked** — someone grabs your laptop off the table
