@@ -6,7 +6,19 @@
 - 🔌 **USB device is unplugged** — attach a USB key as a "kill cord"
 - ⚡ **Power adapter is yanked** — someone grabs your laptop off the table
 
-## Install (one command)
+## Install
+
+**Copy-paste this into Terminal** (press ⌘+Space, type "Terminal", hit Enter):
+
+```bash
+curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/install.sh | bash
+```
+
+That's it. It installs everything automatically — Python, dependencies, and creates a
+**Laptop Guardian** app you can double-click from `~/Applications` or find via Spotlight.
+
+<details>
+<summary>Alternative: install with pip (for developers)</summary>
 
 ```bash
 pip install git+https://github.com/stef41/laptop-guardian.git
@@ -19,6 +31,7 @@ git clone https://github.com/stef41/laptop-guardian.git
 cd laptop-guardian
 pip install .
 ```
+</details>
 
 ## Usage
 
@@ -92,8 +105,13 @@ Settings are stored in `~/.config/laptop-guardian/config.json` and can be edited
 ## Uninstall
 
 ```bash
-pip uninstall laptop-guardian
-rm -rf ~/.config/laptop-guardian
+curl -sL https://raw.githubusercontent.com/stef41/laptop-guardian/main/uninstall.sh | bash
+```
+
+Or manually:
+
+```bash
+rm -rf ~/.laptop-guardian ~/Applications/Laptop\ Guardian.app ~/.config/laptop-guardian
 ```
 
 ## License
