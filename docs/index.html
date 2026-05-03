@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laptop Guardian — Anti-theft protection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .shield { font-size: 80px; margin-bottom: 20px; }
+        h1 { font-size: 2.8em; font-weight: 700; margin-bottom: 12px; }
+        .subtitle {
+            font-size: 1.3em;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.5;
+        }
+
+        /* Download section */
+        .download-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+        .download-primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            color: white;
+            padding: 20px 48px;
+            font-size: 1.3em;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 24px rgba(37, 99, 235, 0.3);
+        }
+        .download-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
+        }
+        .download-primary .icon { font-size: 1.4em; }
+        .os-detected {
+            color: #94a3b8;
+            margin-top: 16px;
+            font-size: 0.95em;
+        }
+        .other-platforms {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .download-alt {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 12px 28px;
+            font-size: 1em;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .download-alt:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        /* Features */
+        .features {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+        .feature {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 28px;
+        }
+        .feature .icon { font-size: 2em; margin-bottom: 12px; }
+        .feature h3 { font-size: 1.15em; margin-bottom: 8px; }
+        .feature p { color: #94a3b8; line-height: 1.5; font-size: 0.95em; }
+
+        /* How it works */
+        .how-it-works {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+            text-align: center;
+        }
+        .how-it-works h2 { font-size: 2em; margin-bottom: 40px; }
+        .steps { text-align: left; }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .step-num {
+            background: #2563eb;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-text h4 { margin-bottom: 4px; font-size: 1.1em; }
+        .step-text p { color: #94a3b8; line-height: 1.4; }
+
+        /* Demo */
+        .demo {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+            text-align: center;
+        }
+        .demo img {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid #1e293b;
+            color: #64748b;
+        }
+        footer a { color: #94a3b8; text-decoration: none; }
+        footer a:hover { color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="shield">🛡️</div>
+    <h1>Laptop Guardian</h1>
+    <p class="subtitle">
+        Automatically locks your laptop when your phone goes out of range,
+        a USB device is unplugged, or the power cable is yanked.
+    </p>
+
+    <div class="download-section">
+        <a id="primary-download" class="download-primary" href="#">
+            <span class="icon">⬇️</span>
+            <span id="primary-label">Download</span>
+        </a>
+        <p class="os-detected" id="os-text">Detecting your system...</p>
+
+        <div class="other-platforms">
+            <a id="dl-mac" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-mac.zip">
+                🍎 macOS
+            </a>
+            <a id="dl-win" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/LaptopGuardian-windows-installer.bat">
+                🪟 Windows
+            </a>
+            <a id="dl-linux" class="download-alt" href="https://github.com/stef41/laptop-guardian/releases/latest/download/install.sh">
+                🐧 Linux
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature">
+        <div class="icon">📶</div>
+        <h3>Bluetooth Proximity</h3>
+        <p>Pair your phone. Walk away with it, and your laptop locks. Come back, disarm it. Simple.</p>
+    </div>
+    <div class="feature">
+        <div class="icon">🔌</div>
+        <h3>USB Kill Cord</h3>
+        <p>Attach a USB key to yourself. If someone grabs your laptop, the USB disconnects and it locks.</p>
+    </div>
+    <div class="feature">
+        <div class="icon">⚡</div>
+        <h3>Power Yank Detection</h3>
+        <p>If the power cable is suddenly pulled (laptop grabbed off a table), it locks immediately.</p>
+    </div>
+    <div class="feature">
+        <div class="icon">🔕</div>
+        <h3>Zero Configuration</h3>
+        <p>Download, open, type your phone name, click "Arm". That's it. No terminal, no coding.</p>
+    </div>
+    <div class="feature">
+        <div class="icon">🖥️</div>
+        <h3>All Platforms</h3>
+        <p>Works on macOS, Windows, and Linux. Same simple interface everywhere.</p>
+    </div>
+    <div class="feature">
+        <div class="icon">⚙️</div>
+        <h3>Configurable</h3>
+        <p>Choose to lock, sleep, or shut down. Enable an alarm sound. Toggle each trigger independently.</p>
+    </div>
+</div>
+
+<div class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                <h4>Download & Open</h4>
+                <p>Click the download button above. On Mac, unzip and open the app. On Windows, run the installer.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                <h4>Set Your Phone Name</h4>
+                <p>Right-click the shield icon in your system tray → Settings → BT Device → type your phone's name (e.g. "iPhone" or "Galaxy S24").</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                <h4>Arm It</h4>
+                <p>Click "Arm Guardian". The shield turns red. Your laptop is now protected.</p>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">
+                <h4>Walk Away</h4>
+                <p>Take your phone with you. When it's out of Bluetooth range (~10m), your laptop locks automatically.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="demo">
+    <img src="demo.gif" alt="Laptop Guardian demo">
+</div>
+
+<footer>
+    <p>
+        Free & open source · <a href="https://github.com/stef41/laptop-guardian">GitHub</a>
+        · MIT License
+    </p>
+</footer>
+
+<script>
+(function() {
+    const ua = navigator.userAgent.toLowerCase();
+    const primary = document.getElementById('primary-download');
+    const label = document.getElementById('primary-label');
+    const osText = document.getElementById('os-text');
+
+    if (ua.includes('mac')) {
+        primary.href = document.getElementById('dl-mac').href;
+        label.textContent = 'Download for macOS';
+        osText.textContent = 'macOS detected · Also available for Windows and Linux below';
+    } else if (ua.includes('win')) {
+        primary.href = document.getElementById('dl-win').href;
+        label.textContent = 'Download for Windows';
+        osText.textContent = 'Windows detected · Also available for macOS and Linux below';
+    } else if (ua.includes('linux')) {
+        primary.href = document.getElementById('dl-linux').href;
+        label.textContent = 'Download for Linux';
+        osText.textContent = 'Linux detected · Also available for macOS and Windows below';
+    } else {
+        primary.href = 'https://github.com/stef41/laptop-guardian/releases/latest';
+        label.textContent = 'Download';
+        osText.textContent = 'Choose your platform below';
+    }
+})();
+</script>
+
+</body>
+</html>
